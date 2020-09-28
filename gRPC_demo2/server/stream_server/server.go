@@ -15,7 +15,7 @@ import (
 type StreamService struct{}
 
 const (
-	PORT = ":9002"
+	PORT    = ":9002"
 	Network = "tcp"
 )
 
@@ -46,6 +46,8 @@ func (s *StreamService) List(r *pb.StreamRequest, stream pb.StreamService_ListSe
 				Value: r.Pt.Value + int32(n),
 			},
 		})
+		log.Println("服务端模式，接收客户端流------ Name: ", r.Pt.Name)
+		log.Println("Value:", r.Pt.Value)
 
 		if err != nil {
 			return err
@@ -60,14 +62,15 @@ func (s *StreamService) Record(stream pb.StreamService_RecordServer) error {
 		r, err := stream.Recv()
 		if err == io.EOF {
 			return stream.SendAndClose(&pb.StreamResponse{Pt: &pb.StreamPoint{
-				Name: "gRPC Stream Server: Record",
+				Name:  "服务端发送--> 这个请求 可以通过",
 				Value: 1}})
 		}
 		if err != nil {
 			return err
 		}
 
-		log.Printf("stream.Recv pt.name: %s, pt.value: %d", r.Pt.Name, r.Pt.Value)
+		log.Println("客户端模式，")
+		log.Printf("服务端发送： pt.name: %s, pt.value: %d", r.Pt.Name, r.Pt.Value)
 	}
 	return nil
 }
@@ -78,7 +81,7 @@ func (s *StreamService) Route(stream pb.StreamService_RouteServer) error {
 	for {
 		err := stream.Send(&pb.StreamResponse{
 			Pt: &pb.StreamPoint{
-				Name:  "接收-gPRC流客户端:路由 (测试玩一下)",
+				Name:  "双向模式: 服务端发送 --->  ",
 				Value: int32(n),
 			},
 		})
@@ -96,7 +99,7 @@ func (s *StreamService) Route(stream pb.StreamService_RouteServer) error {
 
 		n++
 
-		log.Printf("双向流模式-返回: pt.name: %s, pt.value: %d", r.Pt.Name, r.Pt.Value)
+		log.Printf("双向模式--服务端接收: pt.name: %s, pt.value: %d", r.Pt.Name, r.Pt.Value)
 	}
 
 	return nil

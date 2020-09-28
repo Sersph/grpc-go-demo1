@@ -25,20 +25,20 @@ func main() {
 
 	client := pb.NewStreamServiceClient(conn)
 
-	err = printLists(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "gRPC Stream Client: List", Value: 2018}})
+	err = printLists(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "客户端发送--> ", Value: 2018}})
 	if err != nil {
 		log.Fatalf("printLists.err: %v", err)
 	}
 
-	//err = printRecord(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "gRPC Stream Client: Record", Value: 2018}})
-	//if err != nil {
-	//	log.Fatalf("printRecord.err: %v", err)
-	//}
-	//
-	//err = printRoute(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "gRPC Stream Client: Route", Value: 2018}})
-	//if err != nil {
-	//	log.Fatalf("printRoute.err: %v", err)
-	//}
+	err = printRecord(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "客户端发送-->", Value: 2018}})
+	if err != nil {
+		log.Fatalf("printRecord.err: %v", err)
+	}
+
+	err = printRoute(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "客户端发送-->", Value: 2018}})
+	if err != nil {
+		log.Fatalf("printRoute.err: %v", err)
+	}
 }
 
 func printLists(client pb.StreamServiceClient, r *pb.StreamRequest) error {
@@ -47,6 +47,7 @@ func printLists(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 		return err
 	}
 
+	log.Println("客户端开始发送 ---------")
 	for {
 		//主要：stream.Recv()
 		resp, err := stream.Recv()
@@ -59,6 +60,7 @@ func printLists(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 
 		log.Printf("resp: pj.name: %s, pt.value: %d", resp.Pt.Name, resp.Pt.Value)
 	}
+	log.Println("客户端 --------- 发送结束")
 	return nil
 }
 
@@ -68,6 +70,7 @@ func printRecord(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 		return err
 	}
 
+	log.Println("客户端开始接收 --------- 服务端开始发送")
 	for n := 0; n < 6; n++ {
 		err := stream.Send(r)
 		if err != nil {
@@ -81,8 +84,9 @@ func printRecord(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 	}
 
 	log.Printf("resp: pj.name: %s, pt.value: %d", resp.Pt.Name, resp.Pt.Value)
+	log.Println("客户端接收结束 --------- 服务端发送结束")
 	return nil
-//stream.CloseAndRecv 和 stream.SendAndClose 是配套使用的流方法，发送和接收
+	//stream.CloseAndRecv 和 stream.SendAndClose 是配套使用的流方法，发送和接收
 }
 
 func printRoute(client pb.StreamServiceClient, r *pb.StreamRequest) error {
@@ -91,6 +95,7 @@ func printRoute(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 		return err
 	}
 
+	log.Println("双向模式： 客户端接收 并 发送 --------- 开始")
 	for n := 0; n <= 6; n++ {
 		err = stream.Send(r)
 		if err != nil {
@@ -107,6 +112,7 @@ func printRoute(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 
 		log.Printf("resp: pj.name: %s, pt.value: %d", resp.Pt.Name, resp.Pt.Value)
 	}
+	log.Println("双向模式： 客户端接收 并 发送 --------- 结束")
 
 	stream.CloseSend()
 
